@@ -45,8 +45,11 @@ public final class RegistrationClient {
     /** The Curator framework. */
     private final CuratorFramework curatorFramework;
 
-    /** Registration base path. */
-    private final String basePath;
+    /** Registration root path. */
+    private final String rootPath;
+
+    /** Registration stack */
+    private final String stackPath;
 
     /** Application flavor. */
     private final String flavor;
@@ -76,17 +79,18 @@ public final class RegistrationClient {
      * Instantiates a new registration client.
      *
      * @param  curatorFramework  the curator framework
-     * @param  basePath          Zookeeper registration path
+     * @param  rootPath          Zookeeper root registration path
+     * @param  stackPath         Zookeeper stack path
      * @param  flavor            Application flavor of this client.
      * @param  listenAddress     Local IP address
      * @param  serviceSpec       A list of services and corresponding ports.
      * @param  parameters        A map of optional payload parameters.
      */
-    public RegistrationClient(CuratorFramework curatorFramework, String basePath,
+    public RegistrationClient(CuratorFramework curatorFramework, String rootPath, String stackPath,
                               String flavor, String listenAddress,
                               String serviceSpec,
                               Map<String, String> parameters, AuthInfo authInfo) {
-        this(curatorFramework, basePath, flavor, listenAddress, serviceSpec, authInfo);
+        this(curatorFramework, rootPath, stackPath, flavor, listenAddress, serviceSpec, authInfo);
         this.parameters = parameters;
     }
 
@@ -94,31 +98,33 @@ public final class RegistrationClient {
      * Instantiates a new registration client.
      *
      * @param  curatorFramework  the curator framework
-     * @param  basePath          Zookeeper registration path
+     * @param  rootPath          Zookeeper root registration path
+     * @param  stackPath         Zookeeper stack path
      * @param  flavor            Application flavor of this client.
      * @param  listenAddress     Local IP address
      * @param  serviceSpec       A list of services and corresponding ports.
      */
-    public RegistrationClient(CuratorFramework curatorFramework, String basePath,
+    public RegistrationClient(CuratorFramework curatorFramework, String rootPath, String stackPath,
                               String flavor, String listenAddress,
                               String serviceSpec, AuthInfo authInfo) {
-        this(curatorFramework, basePath, flavor, listenAddress, ServiceUtil.parseServiceSpec(serviceSpec), authInfo);
+        this(curatorFramework, rootPath, stackPath, flavor, listenAddress, ServiceUtil.parseServiceSpec(serviceSpec), authInfo);
     }
 
 
     /**
      * Instantiates a new registration client.
-     *
-     * @param  curatorFramework  the curator framework
-     * @param  basePath          Zookeeper registration path
+     *  @param  curatorFramework  the curator framework
+     * @param  rootPath          Zookeeper root registration path
+     * @param  stackPath         Zookeeper stack path
      * @param  flavor            Application flavor of this client.
      * @param  listenAddress     Local IP address
      * @param  services          A Map of services and corresponding ports.
      */
-    public RegistrationClient(CuratorFramework curatorFramework, String basePath, String flavor, String listenAddress,
+    public RegistrationClient(CuratorFramework curatorFramework, String rootPath, String stackPath, String flavor, String listenAddress,
                               Map<String, Integer> services, AuthInfo authInfo) {
         this.curatorFramework = curatorFramework;
-        this.basePath = basePath;
+        this.rootPath = rootPath;
+        this.stackPath = stackPath;
         this.flavor = flavor;
         this.listenAddress = listenAddress;
         this.services = services;
@@ -144,7 +150,7 @@ public final class RegistrationClient {
 
             for (Map.Entry<String, Integer> entry : services.entrySet()) {
                 String serviceName = entry.getKey();
-                String regPath = constructRegistrationPath(basePath, serviceName);
+                String regPath = constructRegistrationPath(rootPath, stackPath, serviceName);
                 int port = entry.getValue().intValue();
                 ServiceDiscovery<MetaData> discovery = ServiceUtil.getDiscovery(regPath, curatorFramework, authInfo);
                 ServiceInstance<MetaData> service = ServiceUtil.getServiceInstance(flavor, port, listenAddress, parameters);
@@ -229,13 +235,14 @@ public final class RegistrationClient {
     /**
      * Build registration path.
      *
-     * @param   basePath
+     * @param   rootPath
+     * @param   stackPath
      * @param   serviceName
      *
      * @return
      */
-    protected static String constructRegistrationPath(String basePath, String serviceName) {
-        StringBuilder buff = new StringBuilder().append("/").append(serviceName).append(basePath);
+    protected static String constructRegistrationPath(String rootPath, String stackPath, String serviceName) {
+        StringBuilder buff = new StringBuilder().append(rootPath).append("/").append(serviceName).append(stackPath);
 
         return buff.toString();
     }

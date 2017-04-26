@@ -36,22 +36,22 @@ public class DiscoveryClientIT extends AbstractITBase {
     @Test
     public void testFindSubNodes() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b", "z", "127.0.0.1", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath,"/a/b", "z", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.1", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, "/a/b/c", "y", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.2", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, "/a/b/c", "y", "127.0.0.2", "http:80", null)
                     .advertiseAvailability());
         
-        DiscoveryClient discovery = new DiscoveryClient(getCurator(), "/http" + basePath,
+        DiscoveryClient discovery = new DiscoveryClient(getCurator(), "/http" + rootPath,
         new ServiceDiscoveryManagerImpl(getCurator())
         );
         TreeMap<String, MetaData> services = new TreeMap<String, MetaData>();
-        discovery.findSubNodes(services, "/http" + basePath);
+        discovery.findSubNodes(services, rootPath + "/http");
         assertEquals(services.size(), 3);
-        assertTrue(services.containsKey("/http" + basePath + "/a/b/z/127.0.0.1:80"));
-        assertTrue(services.containsKey("/http" + basePath + "/a/b/c/y/127.0.0.1:80"));
-        assertTrue(services.containsKey("/http" + basePath + "/a/b/c/y/127.0.0.2:80"));
+        assertTrue(services.containsKey(rootPath + "/http/a/b/z/127.0.0.1:80"));
+        assertTrue(services.containsKey(rootPath + "/http/a/b/c/y/127.0.0.1:80"));
+        assertTrue(services.containsKey(rootPath + "/http/a/b/c/y/127.0.0.2:80"));
 
         for (RegistrationClient worker : workers) {
             worker.deAdvertiseAvailability();
@@ -61,20 +61,20 @@ public class DiscoveryClientIT extends AbstractITBase {
     @Test
     public void testFindDirectories() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b", "z", "127.0.0.1", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, "/a/b", "z", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.1", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, "/a/b/c", "y", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
         ServiceDiscoveryManager manager = new ServiceDiscoveryManagerImpl(null);
-        DiscoveryClient discovery = new DiscoveryClient(getCurator(), "/http" + basePath, Arrays.asList("a"),manager);
+        DiscoveryClient discovery = new DiscoveryClient(getCurator(), rootPath + "/http", Arrays.asList("a"),manager);
 
-        List<String> dirs = discovery.findDirectories("/http" + basePath + "/a");
+        List<String> dirs = discovery.findDirectories(rootPath + "/http/a");
         assertEquals(dirs.size(), 1);
-        assertTrue(dirs.contains("/http" + basePath + "/a/b"));
+        assertTrue(dirs.contains(rootPath + "/http/a/b"));
 
-        dirs = discovery.findDirectories("/http" + basePath + "/a/b");
+        dirs = discovery.findDirectories(rootPath + "/http/a/b");
         assertEquals(dirs.size(), 1);
-        assertTrue(dirs.contains("/http" + basePath + "/a/b/c"));
+        assertTrue(dirs.contains(rootPath + "/http/a/b/c"));
 
         for (RegistrationClient worker : workers) {
             worker.deAdvertiseAvailability();
@@ -84,25 +84,25 @@ public class DiscoveryClientIT extends AbstractITBase {
     @Test
     public void testFindChildren() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
-        workers.add(new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.1", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "vanilla", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.2", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "vanilla", "127.0.0.2", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/x", "vanilla", "127.0.0.1", "http:80", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath + "/x", "vanilla", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
 
         Map<String, MetaData> instances = new TreeMap<String, MetaData>();
         ServiceDiscoveryManager manager = new ServiceDiscoveryManagerImpl(getCurator());
-        DiscoveryClient discovery = new DiscoveryClient(getCurator(), basePath, Arrays.asList("http"),manager);
-        discovery.findChildren(instances, "/http" + basePath);
+        DiscoveryClient discovery = new DiscoveryClient(getCurator(), rootPath, Arrays.asList(rootPath),manager);
+        discovery.findChildren(instances, rootPath + "/http" + stackPath);
         assertEquals(instances.size(), 2);
 
         instances.clear();
-        discovery.findChildren(instances, "/chocolate" + basePath);
+        discovery.findChildren(instances, rootPath + "/chocolate");
         assertEquals(instances.size(), 0);
 
         instances.clear();
-        discovery.findChildren(instances, basePath + "/x");
+        discovery.findChildren(instances, rootPath +  "/http/x");
         assertEquals(instances.size(), 0);
 
         for (RegistrationClient worker : workers) {

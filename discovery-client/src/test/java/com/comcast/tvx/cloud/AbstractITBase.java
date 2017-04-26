@@ -36,7 +36,9 @@ public abstract class AbstractITBase {
     /** The curator framework. */
     CuratorFramework curatorFramework;
 
-    String basePath = "/cvs/" + getClass().getName();
+    String rootPath = "/cvs/" + getClass().getName();
+
+    String stackPath = "/PO/PO7";
 
     /**
      * Gets the curator.

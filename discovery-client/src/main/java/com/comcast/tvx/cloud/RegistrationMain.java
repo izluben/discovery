@@ -76,10 +76,9 @@ public class RegistrationMain {
             return;
         }
 
-        String basePath = new StringBuilder().append(registrationPath).append("/").append(region).append("/")
-                .append(availabilityZone).toString();
+        String stackPath = new StringBuilder().append("/").append(region).append("/").append(availabilityZone).toString();
         final CuratorFramework curatorFramework = CuratorClient.getCuratorFramework(zooKeeperConnectionString);
-        final RegistrationClient registrationClient = new RegistrationClient(curatorFramework, basePath, flavor, ip,
+        final RegistrationClient registrationClient = new RegistrationClient(curatorFramework, registrationPath, stackPath, flavor, ip,
                 serviceSpec, null);
 
         log.info("created client, advertising");

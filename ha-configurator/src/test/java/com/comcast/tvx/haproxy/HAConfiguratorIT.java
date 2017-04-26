@@ -43,8 +43,8 @@ public class HAConfiguratorIT {
     private static final String availabilityZone = "zonedOut";
     private static final String flavor = "yummy";
     private static final String ip = "127.0.0.1";
-    private static final String basePath = new StringBuilder().append("/services").append("/").append(region)
-            .append("/").append(availabilityZone).toString();
+    private static final String basePath = "/services";
+    private static final String stackPath = new StringBuilder().append("/").append(region).append("/").append(availabilityZone).toString();
     final CuratorFramework curatorFramework = CuratorClient.getCuratorFramework(getConnectionString());
     private List<RegistrationClient> clients = new ArrayList<RegistrationClient>();
 
@@ -52,14 +52,14 @@ public class HAConfiguratorIT {
         String conn = System.getProperty("zookeeper.host", "localhost")
                 + ":" + System.getProperty("zookeeper.port", "2181");
         log.debug("ZK connection string: " + conn);
-        return conn;
+        return "localhost:2181";
     }
 
     @Test(groups = { "scaleUp" })
     public void testScaleUp() throws InterruptedException {
         for (int i = 0; i < 4; i++) {
             String serviceSpec = "foo" + i + ":100";
-            clients.add(new RegistrationClient(curatorFramework, basePath, flavor, ip, serviceSpec, null)
+            clients.add(new RegistrationClient(curatorFramework, basePath, stackPath, flavor, ip, serviceSpec, null)
                     .advertiseAvailability());
         }
         Thread.sleep(3000);
@@ -94,7 +94,6 @@ public class HAConfiguratorIT {
         Thread.sleep(3 * 1000);
 
         HAServersConfiguration rulesDelta = zkEventHandler.constructRules(discoClient.findInstances(), mappings);
-        System.out.println("RULES:" + rules + ", RULES DELTa:" + rulesDelta);
         Assert.assertNotEquals(rules, rulesDelta);
 
     }

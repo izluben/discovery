@@ -44,10 +44,10 @@ public class RegistrationClientIT extends AbstractITBase {
     @Test
     public void testSimpleRegistration() throws Exception {
         RegistrationClient workerAdvertiser =
-            new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.1", "foo:2181", null).advertiseAvailability();
+            new RegistrationClient(getCurator(), rootPath, stackPath, "vanilla", "127.0.0.1", "foo:2181", null).advertiseAvailability();
 
         ServiceDiscovery<MetaData> serviceDiscovery =
-            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath("/foo" + basePath).build();
+            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(rootPath + "/foo" + stackPath).build();
 
         Collection<ServiceInstance<MetaData>> services = serviceDiscovery.queryForInstances("vanilla");
         log.debug("All services: " + services.toString());
@@ -61,7 +61,7 @@ public class RegistrationClientIT extends AbstractITBase {
 
         workerAdvertiser.deAdvertiseAvailability();
 
-        assertTrue(ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(basePath).build()
+        assertTrue(ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(rootPath).build()
                    .queryForInstances("vanilla").size() == 0);
 
     }
@@ -75,17 +75,17 @@ public class RegistrationClientIT extends AbstractITBase {
     public void testClusterRegistrationOfSameType() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "POC1", "192.168.1.100", "guide:10004", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "POC1", "192.168.1.100", "guide:10004", null)
                     .advertiseAvailability());
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "POC2", "192.168.1.101", "guide:10022", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "POC2", "192.168.1.101", "guide:10022", null)
                     .advertiseAvailability());
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "POC2", "192.168.1.102", "guide:10022", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "POC2", "192.168.1.102", "guide:10022", null)
                     .advertiseAvailability());
 
         ServiceDiscovery<MetaData> serviceDiscovery =
-            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath("/guide" + basePath).build();
+            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(rootPath + "/guide" + stackPath).build();
 
         Collection<String> names = serviceDiscovery.queryForNames();
         assertEquals(names.size(), 2);
@@ -116,10 +116,10 @@ public class RegistrationClientIT extends AbstractITBase {
     public void testShouldEnforceUniqueNameAddressPort() {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "y", "192.168.1.101", "dayview:10022", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "y", "192.168.1.101", "dayview:10022", null)
                     .advertiseAvailability());
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "y", "192.168.1.101", "dayview:10022", null)
+        workers.add(new RegistrationClient(getCurator(), rootPath, stackPath, "y", "192.168.1.101", "dayview:10022", null)
                     .advertiseAvailability());
 
         for (RegistrationClient worker : workers) {
@@ -129,7 +129,7 @@ public class RegistrationClientIT extends AbstractITBase {
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testDuplicateAdvertisement() {
-        RegistrationClient client = new RegistrationClient(getCurator(), basePath, "y", "192.168.1.101", "dayview:10022", null);
+        RegistrationClient client = new RegistrationClient(getCurator(), rootPath, stackPath, "y", "192.168.1.101", "dayview:10022", null);
         client.advertiseAvailability();
         client.advertiseAvailability();
     }
