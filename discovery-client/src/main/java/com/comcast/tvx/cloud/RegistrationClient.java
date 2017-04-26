@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.comcast.tvx.cloud.auth.AuthInfo;
 import com.google.common.base.Throwables;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -56,6 +57,9 @@ public final class RegistrationClient {
     /** Map of services to register. */
     private final Map<String, Integer> services;
 
+    /** Object that encapsulates auth information */
+    private final AuthInfo authInfo;
+
     /** Map of discovery objects and instances since there is a one to one correlation. */
     private Map<ServiceDiscovery<MetaData>, ServiceInstance<MetaData>> discoveryMap;
 
@@ -81,8 +85,8 @@ public final class RegistrationClient {
     public RegistrationClient(CuratorFramework curatorFramework, String basePath,
                               String flavor, String listenAddress,
                               String serviceSpec,
-                              Map<String, String> parameters) {
-        this(curatorFramework, basePath, flavor, listenAddress, serviceSpec);
+                              Map<String, String> parameters, AuthInfo authInfo) {
+        this(curatorFramework, basePath, flavor, listenAddress, serviceSpec, authInfo);
         this.parameters = parameters;
     }
 
@@ -97,8 +101,8 @@ public final class RegistrationClient {
      */
     public RegistrationClient(CuratorFramework curatorFramework, String basePath,
                               String flavor, String listenAddress,
-                              String serviceSpec) {
-        this(curatorFramework, basePath, flavor, listenAddress, ServiceUtil.parseServiceSpec(serviceSpec));
+                              String serviceSpec, AuthInfo authInfo) {
+        this(curatorFramework, basePath, flavor, listenAddress, ServiceUtil.parseServiceSpec(serviceSpec), authInfo);
     }
 
 
@@ -112,12 +116,13 @@ public final class RegistrationClient {
      * @param  services          A Map of services and corresponding ports.
      */
     public RegistrationClient(CuratorFramework curatorFramework, String basePath, String flavor, String listenAddress,
-                              Map<String, Integer> services) {
+                              Map<String, Integer> services, AuthInfo authInfo) {
         this.curatorFramework = curatorFramework;
         this.basePath = basePath;
         this.flavor = flavor;
         this.listenAddress = listenAddress;
         this.services = services;
+        this.authInfo = authInfo;
         discoveryMap = new HashMap<ServiceDiscovery<MetaData>, ServiceInstance<MetaData>>();
     }
 
@@ -139,30 +144,30 @@ public final class RegistrationClient {
 
             for (Map.Entry<String, Integer> entry : services.entrySet()) {
                 String serviceName = entry.getKey();
-                String regPath = constructRegistrationPath(basePath, flavor);
+                String regPath = constructRegistrationPath(basePath, serviceName);
                 int port = entry.getValue().intValue();
-                ServiceDiscovery<MetaData> discovery = ServiceUtil.getDiscovery(regPath, curatorFramework);
-                ServiceInstance<MetaData> service = ServiceUtil.getServiceInstance(serviceName, port, listenAddress, parameters);
+                ServiceDiscovery<MetaData> discovery = ServiceUtil.getDiscovery(regPath, curatorFramework, authInfo);
+                ServiceInstance<MetaData> service = ServiceUtil.getServiceInstance(flavor, port, listenAddress, parameters);
 
                 /*
                  * Having >1 instance with of the same name with same listenAddress + listPort is
                  * bad. Incur some overhead to look for duplicates and explode appropriately
                  */
-                Collection<ServiceInstance<MetaData>> candidates = discovery.queryForInstances(serviceName);
+                Collection<ServiceInstance<MetaData>> candidates = discovery.queryForInstances(flavor);
 
                 for (ServiceInstance<MetaData> worker : candidates) {
                     if ((worker.getAddress().equals(service.getAddress())) && (worker.getPort() == port)) {
                         log.error("An instance of " + service + " already exists at: " +
                                   service.getAddress() + ":" + port);
                         throw new IllegalStateException("Duplicate service being registered. for service: " +
-                                                        serviceName + " at: " + regPath);
+                                                        flavor + " at: " + regPath);
                     }
                 }
 
-                log.debug("registering service: " + serviceName);
+                log.debug("registering service: " + flavor);
                 discovery.registerService(service);
                 discoveryMap.put(discovery, service);
-                log.info("registered service: " + serviceName);
+                log.info("registered service: " + flavor);
 
             }
         } catch (RuntimeException rte) {
@@ -225,12 +230,12 @@ public final class RegistrationClient {
      * Build registration path.
      *
      * @param   basePath
-     * @param   flavor
+     * @param   serviceName
      *
      * @return
      */
-    protected static String constructRegistrationPath(String basePath, String flavor) {
-        StringBuilder buff = new StringBuilder().append(basePath).append("/").append(flavor);
+    protected static String constructRegistrationPath(String basePath, String serviceName) {
+        StringBuilder buff = new StringBuilder().append("/").append(serviceName).append(basePath);
 
         return buff.toString();
     }

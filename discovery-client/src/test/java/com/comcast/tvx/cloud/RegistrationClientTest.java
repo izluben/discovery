@@ -30,7 +30,7 @@ public class RegistrationClientTest {
     @Test
     public void testConstructPath() {
         String path = RegistrationClient.constructRegistrationPath("/com/cvs", "chocolate");
-        assertEquals(path, "/com/cvs/chocolate");
+        assertEquals(path, "/chocolate/com/cvs");
     }
 
     @Test

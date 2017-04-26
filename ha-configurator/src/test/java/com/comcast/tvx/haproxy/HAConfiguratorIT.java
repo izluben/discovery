@@ -59,7 +59,7 @@ public class HAConfiguratorIT {
     public void testScaleUp() throws InterruptedException {
         for (int i = 0; i < 4; i++) {
             String serviceSpec = "foo:100" + i;
-            clients.add(new RegistrationClient(curatorFramework, basePath, flavor, ip, serviceSpec)
+            clients.add(new RegistrationClient(curatorFramework, basePath, flavor, ip, serviceSpec, null)
                     .advertiseAvailability());
         }
         Thread.sleep(3000);

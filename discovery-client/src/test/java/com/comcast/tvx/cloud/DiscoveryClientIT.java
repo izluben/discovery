@@ -36,11 +36,11 @@ public class DiscoveryClientIT extends AbstractITBase {
     @Test
     public void testFindSubNodes() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b", "z", "127.0.0.1", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b", "z", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.1", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.2", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.2", "http:80", null)
                     .advertiseAvailability());
         
         DiscoveryClient discovery = new DiscoveryClient(getCurator(), basePath,
@@ -61,9 +61,9 @@ public class DiscoveryClientIT extends AbstractITBase {
     @Test
     public void testFindDirectories() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b", "z", "127.0.0.1", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b", "z", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.1", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath + "/a/b/c", "y", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
         ServiceDiscoveryManager manager = new ServiceDiscoveryManagerImpl(null);
         DiscoveryClient discovery = new DiscoveryClient(getCurator(), basePath, Arrays.asList("a"),manager);
@@ -88,11 +88,11 @@ public class DiscoveryClientIT extends AbstractITBase {
     @Test
     public void testFindChildren() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
-        workers.add(new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.1", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.2", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.2", "http:80", null)
                     .advertiseAvailability());
-        workers.add(new RegistrationClient(getCurator(), basePath + "/x", "vanilla", "127.0.0.1", "http:80")
+        workers.add(new RegistrationClient(getCurator(), basePath + "/x", "vanilla", "127.0.0.1", "http:80", null)
                     .advertiseAvailability());
 
         Map<String, MetaData> instances = new TreeMap<String, MetaData>();

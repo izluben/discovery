@@ -16,6 +16,7 @@
 
 package com.comcast.tvx.cloud;
 
+import com.comcast.tvx.cloud.auth.AuthInfo;
 import com.sampullara.cli.Args;
 import com.sampullara.cli.Argument;
 
@@ -79,7 +80,7 @@ public class RegistrationMain {
                 .append(availabilityZone).toString();
         final CuratorFramework curatorFramework = CuratorClient.getCuratorFramework(zooKeeperConnectionString);
         final RegistrationClient registrationClient = new RegistrationClient(curatorFramework, basePath, flavor, ip,
-                serviceSpec);
+                serviceSpec, null);
 
         log.info("created client, advertising");
 
