@@ -58,7 +58,7 @@ public class HAConfiguratorIT {
     @Test(groups = { "scaleUp" })
     public void testScaleUp() throws InterruptedException {
         for (int i = 0; i < 4; i++) {
-            String serviceSpec = "foo:100" + i;
+            String serviceSpec = "foo" + i + ":100";
             clients.add(new RegistrationClient(curatorFramework, basePath, flavor, ip, serviceSpec, null)
                     .advertiseAvailability());
         }
@@ -68,9 +68,9 @@ public class HAConfiguratorIT {
     @Test(dependsOnGroups = "scaleUp")
     public void testScaleDown() throws InterruptedException {
         HashMap<Integer, String> mappings = new HashMap<Integer, String>();
-        mappings.put(Integer.valueOf(81), "/services/[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9]*/foo/.*:/healthcheck");
+        mappings.put(Integer.valueOf(81), "/services/foo/[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9]*/.*:/healthcheck");
         List<String> filters = new ArrayList<String>();
-        filters.add("region1/**");
+        filters.add("foo/**");
         final DiscoveryClient discoClient = new DiscoveryClient(curatorFramework, Constants.DEFAULT_REGISTRATION_ROOT,
                 filters, new ServiceDiscoveryManagerImpl(curatorFramework));
 
@@ -94,7 +94,7 @@ public class HAConfiguratorIT {
         Thread.sleep(3 * 1000);
 
         HAServersConfiguration rulesDelta = zkEventHandler.constructRules(discoClient.findInstances(), mappings);
-
+        System.out.println("RULES:" + rules + ", RULES DELTa:" + rulesDelta);
         Assert.assertNotEquals(rules, rulesDelta);
 
     }

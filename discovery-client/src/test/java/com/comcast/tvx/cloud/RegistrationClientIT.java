@@ -47,22 +47,22 @@ public class RegistrationClientIT extends AbstractITBase {
             new RegistrationClient(getCurator(), basePath, "vanilla", "127.0.0.1", "foo:2181", null).advertiseAvailability();
 
         ServiceDiscovery<MetaData> serviceDiscovery =
-            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(basePath + "/vanilla").build();
+            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath("/foo" + basePath).build();
 
-        Collection<ServiceInstance<MetaData>> services = serviceDiscovery.queryForInstances("foo");
+        Collection<ServiceInstance<MetaData>> services = serviceDiscovery.queryForInstances("vanilla");
         log.debug("All services: " + services.toString());
         assertEquals(services.size(), 1);
 
         for (ServiceInstance<MetaData> worker : services) {
             assertEquals(worker.getAddress(), "127.0.0.1");
             assertEquals(worker.getPort(), new Integer(2181));
-            assertEquals(worker.getName(), "foo");
+            assertEquals(worker.getName(), "vanilla");
         }
 
         workerAdvertiser.deAdvertiseAvailability();
 
         assertTrue(ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(basePath).build()
-                   .queryForInstances("foo").size() == 0);
+                   .queryForInstances("vanilla").size() == 0);
 
     }
 
@@ -75,32 +75,32 @@ public class RegistrationClientIT extends AbstractITBase {
     public void testClusterRegistrationOfSameType() throws Exception {
         List<RegistrationClient> workers = new ArrayList<RegistrationClient>();
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "x", "192.168.1.100", "guide:10004", null)
+        workers.add(new RegistrationClient(getCurator(), basePath, "POC1", "192.168.1.100", "guide:10004", null)
                     .advertiseAvailability());
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "x", "192.168.1.101", "dayview:10022", null)
+        workers.add(new RegistrationClient(getCurator(), basePath, "POC2", "192.168.1.101", "guide:10022", null)
                     .advertiseAvailability());
 
-        workers.add(new RegistrationClient(getCurator(), basePath, "x", "192.168.1.102", "dayview:10022", null)
+        workers.add(new RegistrationClient(getCurator(), basePath, "POC2", "192.168.1.102", "guide:10022", null)
                     .advertiseAvailability());
 
         ServiceDiscovery<MetaData> serviceDiscovery =
-            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath(basePath + "/x").build();
+            ServiceDiscoveryBuilder.builder(MetaData.class).client(getCurator()).basePath("/guide" + basePath).build();
 
         Collection<String> names = serviceDiscovery.queryForNames();
         assertEquals(names.size(), 2);
-        assertTrue(names.containsAll(Arrays.asList("guide", "dayview")));
+        assertTrue(names.containsAll(Arrays.asList("POC1", "POC2")));
 
-        Collection<ServiceInstance<MetaData>> guides = serviceDiscovery.queryForInstances("guide");
-        assertEquals(guides.size(), 1);
+        Collection<ServiceInstance<MetaData>> poc1s = serviceDiscovery.queryForInstances("POC1");
+        assertEquals(poc1s.size(), 1);
 
-        ServiceInstance<MetaData> guide = guides.iterator().next();
-        assertEquals(guide.getName(), "guide");
-        assertEquals(guide.getAddress(), "192.168.1.100");
-        assertEquals(guide.getPort(), new Integer(10004));
+        ServiceInstance<MetaData> poc1 = poc1s.iterator().next();
+        assertEquals(poc1.getName(), "POC1");
+        assertEquals(poc1.getAddress(), "192.168.1.100");
+        assertEquals(poc1.getPort(), new Integer(10004));
 
-        Collection<ServiceInstance<MetaData>> dayviews = serviceDiscovery.queryForInstances("dayview");
-        assertEquals(dayviews.size(), 2);
+        Collection<ServiceInstance<MetaData>> poc2s = serviceDiscovery.queryForInstances("POC2");
+        assertEquals(poc2s.size(), 2);
 
         for (RegistrationClient worker : workers) {
             worker.deAdvertiseAvailability();
